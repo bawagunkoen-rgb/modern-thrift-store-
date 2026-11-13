@@ -1,0 +1,56 @@
+Build a modern, high-performance, mobile-first e-commerce web application for a thrift store named "The Modern Thrift Store".
+
+### 1. TECH STACK & ARCHITECTURE (High Traffic & Speed)
+- Frontend: React (Vite) + Tailwind CSS + Lucide Icons + Framer Motion (for smooth animations)
+- Backend: Node.js (Express) with RESTful APIs
+- Database: PostgreSQL (Prisma ORM) for fast inventory and order management
+- Mobile Responsive: 100% optimized for mobile screens first (iOS & Android)
+
+### 2. CORE E-COMMERCE FEATURES & SECTIONS
+
+A. HEADER & TOP ANNOUNCEMENT BAR
+- Top Bar: Fixed banner displaying "🚚 FREE SHIPPING ON ORDERS OF RS. 8,000 & ABOVE!".
+- Header: Logo ("The Modern Thrift Store"), Search Bar, Cart Drawer Icon with item badge, and Mobile Navigation Menu.
+
+B. DYNAMIC PROMO BANNERS (Admin Configurable)
+- Hero Banner Slider: High-resolution promo banners (e.g., "WINTER SALE IS LIVE NOW", "WEEKLY DROP").
+- Banners must be easily updateable/changeable from the Admin Panel every week.
+
+C. VISUAL CATEGORIES SECTION
+- Category grid displaying High-Quality Images with Overlay Text (NOT just plain text names).
+- Categories included: 
+  - Winter Collection (Jackets, Hoodies, Coats, Sweaters)
+  - Summer Collection (T-Shirts, Casual Shirts, Polo, Shorts)
+  - Accessories & Streetwear
+
+D. PRODUCT GRID & PRICING FEATURES
+- Strikethrough Discount Pricing: Display Original Price crossed out alongside Discounted/Sale Price (e.g., "Rs. 3,000 -> Rs. 2,500").
+- "SOLD OUT" Badge & Logic: When stock reaches 0, display a visible "SOLD OUT" badge on the product image. Keep sold-out products listed on the site so visitors can see previous variety.
+- Sections on Homepage:
+  1. Featured Products (Curated picks)
+  2. Latest Drops / New Arrivals
+
+E. PRODUCT DETAIL PAGE (PDP)
+- Multi-image gallery with pinch-to-zoom / tap-to-expand.
+- Interactive Size & Fit Guidance Tool: Custom ruler input where customers enter their chest/length in inches to get fit recommendations.
+- Flash Drop Countdown Timer widget for limited vintage items.
+- "Order via WhatsApp" button alongside "Add to Cart" & "Cash on Delivery Checkout".
+
+F. FOOTER & MARKETING INTEGRATIONS
+- Email Newsletter Subscription Box: "Subscribe for exclusive discount alerts and next drop notifications" (Saves emails to DB).
+- Social Media Links: Direct clickable icons/buttons for TikTok and Instagram accounts.
+- Trust Badges: "100% Authentic Pre-Loved Items", "Fast Cash on Delivery Across Pakistan".
+
+### 3. CHECKOUT & CART SYSTEM
+- Slide-over Cart Drawer with subtotal calculation.
+- Automatically calculate Free Delivery if cart value >= Rs. 8,000; otherwise apply standard shipping fee.
+- One-Page Checkout Form: Customer Name, WhatsApp Phone Number, City, Full Address, Payment Method (Cash on Delivery / Direct Transfer).
+- Abandoned Cart Recovery Script: Store partial checkout inputs to generate quick WhatsApp follow-up links in Admin.
+
+### 4. ADMIN DASHBOARD (/admin)
+- Protected Login System for Admin.
+- Product Management: Add, Edit, Soft-Delete, or mark items as "Sold Out".
+- Dynamic Category & Banner Manager: Upload/change home promo banners and category images.
+- Order Management: View incoming orders, update status (Pending, Shipped, Delivered), and export email subscriber lists.
+
+Ensure the code is clean, production-ready, modular, and optimized for high concurrent traffic and fast loading speeds.

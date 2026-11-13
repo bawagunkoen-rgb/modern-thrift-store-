@@ -1,0 +1,55 @@
+Create a modern, highly responsive, and mobile-first E-Commerce Thrift Store web application for "Pre Loved Men’s Collection".
+
+Key Features & Specifications:
+
+1. Top Announcement Bar:
+   - Floating header banner at the top displaying "FREE DELIVERY NATIONWIDE".
+
+2. Header & Branding:
+   - Store Name: "Pre Loved Men’s Collection"
+   - Display currency in PKR (Rs.) across the store.
+
+3. Categories Section (With Visual Icons/Logos):
+   - Interactive circular/card category grid. Each category MUST have an iconic visual logo/image representing it, not just plain text:
+     * Shirts
+     * Trousers
+     * Pents
+     * Nikers
+     * Dry Fit Polo Shirts
+     * Cotton T-Shirt
+     * Dress Shirt (Full & Half)
+     * Dress Pent
+     * Golf Section
+
+4. Top Brands Visual Grid (Logos + Direct Brand Filtering):
+   - Create a clean 3-column or 4-column visual grid of official brand logos (using SVG or clean PNG logos on white cards).
+   - Display brand logos clearly alongside their names for:
+     1. NIKE
+     2. ADIDAS
+     3. LACOSTE
+     4. HUGO BOSS
+     5. UNDER ARMOUR
+     6. POLO
+     7. REEBOK
+     8. FJ (FootJoy)
+     9. THE NORTH FACE
+     10. ARMANI
+     11. LOUIS VUITTON (LV)
+     12. GUCCI
+     13. PRADA
+     14. DOLCE & GABBANA (D&G)
+     15. CALVIN KLEIN (CK)
+   - FILTER FUNCTIONALITY: When a user clicks/presses any brand logo (e.g., NIKE), the store must instantly filter and display ONLY the available articles from that specific brand.
+
+5. Order & Dispatch System:
+   - Real-time order notification system in the Admin Panel for immediate order dispatching.
+   - Admin panel to view customer order details, address, and status.
+
+6. WhatsApp Floating Support:
+   - Floating WhatsApp button on the bottom right corner connected directly to the phone number: 03182082052 (International format: +923182082052).
+   - Clicking it opens direct chat on WhatsApp with a pre-filled greeting message.
+
+7. Footer & Mobile Nav:
+   - Copyright text: "© All Rights Reserved by Owner".
+   - Store logo at the bottom.
+   - Fixed mobile bottom navigation bar (Home, Collection, Cart).

@@ -1,0 +1,1142 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: The Modern Thrift Store e-commerce API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: products
+    description: Product operations
+  - name: categories
+    description: Category operations
+  - name: brands
+    description: Brand operations
+  - name: orders
+    description: Order operations
+  - name: cart
+    description: Cart operations
+  - name: stats
+    description: Store stats
+  - name: auth
+    description: Admin access checks
+  - name: gallery
+    description: Admin media gallery
+  - name: storage
+    description: Direct image uploads and private image delivery
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /products:
+    get:
+      operationId: listProducts
+      tags: [products]
+      summary: List products with optional filters
+      parameters:
+        - name: categoryId
+          in: query
+          schema:
+            type: ["number", "null"]
+        - name: brandId
+          in: query
+          schema:
+            type: ["number", "null"]
+        - name: search
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: inStock
+          in: query
+          schema:
+            type: ["boolean", "null"]
+      responses:
+        "200":
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+    post:
+      operationId: createProduct
+      tags: [products]
+      summary: Create a product (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+
+  /products/{id}:
+    get:
+      operationId: getProduct
+      tags: [products]
+      summary: Get a single product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateProduct
+      tags: [products]
+      summary: Update a product (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductUpdate"
+      responses:
+        "200":
+          description: Updated product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteProduct
+      tags: [products]
+      summary: Delete a product (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+
+  /admin/products:
+    get:
+      operationId: listAdminProducts
+      tags: [products]
+      summary: List products with owner-only inventory fields
+      description: Requires verified owner access. Internal storage codes are never included in public product responses.
+      responses:
+        "200":
+          description: Admin product list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminProduct"
+        "401":
+          description: Sign-in required
+        "403":
+          description: Owner access required
+
+  /categories:
+    get:
+      operationId: listCategories
+      tags: [categories]
+      summary: List all categories
+      responses:
+        "200":
+          description: Categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+    post:
+      operationId: createCategory
+      tags: [categories]
+      summary: Create a category (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+
+  /brands/active:
+    get:
+      operationId: listActiveBrands
+      tags: [brands]
+      summary: List brands that have publicly available products
+      responses:
+        "200":
+          description: Brands with at least one non-deleted product
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Brand"
+
+  /brands:
+    get:
+      operationId: listBrands
+      tags: [brands]
+      summary: List all brands
+      responses:
+        "200":
+          description: Brands
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Brand"
+    post:
+      operationId: createBrand
+      tags: [brands]
+      summary: Create a brand (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BrandInput"
+      responses:
+        "200":
+          description: The brand already existed and is returned for reuse
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Brand"
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Brand"
+
+  /orders:
+    get:
+      operationId: listOrders
+      tags: [orders]
+      summary: List all orders (admin)
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: Orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+    post:
+      operationId: createOrder
+      tags: [orders]
+      summary: Place a cash-on-delivery order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderInput"
+      responses:
+        "201":
+          description: Created order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/{id}:
+    get:
+      operationId: getOrder
+      tags: [orders]
+      summary: Get order details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateOrderStatus
+      tags: [orders]
+      summary: Update order status (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderStatusUpdate"
+      responses:
+        "200":
+          description: Updated order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "404":
+          description: Not found
+
+  /stats:
+    get:
+      operationId: getStoreStats
+      tags: [stats]
+      summary: Get store dashboard stats (admin)
+      responses:
+        "200":
+          description: Store stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StoreStats"
+
+  /stats/visitor-activity:
+    post:
+      operationId: recordVisitorActivity
+      tags: [stats]
+      summary: Record an anonymous storefront page view or visitor heartbeat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VisitorActivityInput"
+      responses:
+        "204":
+          description: Visitor activity recorded
+        "400":
+          description: Invalid visitor activity
+        "429":
+          description: Too many requests
+
+  /stats/recent-orders:
+    get:
+      operationId: getRecentOrders
+      tags: [stats]
+      summary: Get recent orders for admin dashboard
+      responses:
+        "200":
+          description: Recent orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+
+  /auth/admin-access:
+    get:
+      operationId: getAdminAccess
+      tags: [auth]
+      summary: Check whether the signed-in user is the store owner
+      responses:
+        "200":
+          description: The user is authorized as the owner
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAccess"
+        "401":
+          description: Sign-in required
+        "403":
+          description: Owner access required
+
+  /gallery:
+    get:
+      operationId: listGalleryImages
+      tags: [gallery]
+      summary: List uploaded gallery images (owner only)
+      responses:
+        "200":
+          description: Gallery images
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GalleryImage"
+        "401":
+          description: Sign-in required
+        "403":
+          description: Owner access required
+    post:
+      operationId: createGalleryImage
+      tags: [gallery]
+      summary: Save metadata for an uploaded image (owner only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GalleryImageInput"
+      responses:
+        "201":
+          description: Gallery image saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GalleryImage"
+        "400":
+          description: Invalid metadata or image object
+        "401":
+          description: Sign-in required
+        "403":
+          description: Owner access required
+
+  /storage/uploads/request-url:
+    post:
+      operationId: requestUploadUrl
+      tags: [storage]
+      summary: Create a short-lived direct image upload URL (owner only)
+      description: The file bytes are uploaded directly to App Storage from the browser.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UploadUrlRequest"
+      responses:
+        "200":
+          description: Presigned upload URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadUrlResponse"
+        "400":
+          description: Invalid file metadata
+        "401":
+          description: Sign-in required
+        "403":
+          description: Owner access required
+  /storage/objects/{objectPath}:
+    get:
+      operationId: getStorageObject
+      tags: [storage]
+      summary: Stream a private gallery image (owner only)
+      parameters:
+        - name: objectPath
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Image bytes
+          content:
+            image/*:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: Sign-in required
+        "403":
+          description: Owner access required
+        "404":
+          description: Image not found
+  /storage/public-objects/{filePath}:
+    get:
+      operationId: getPublicObject
+      tags: [storage]
+      summary: Serve a public website asset
+      parameters:
+        - name: filePath
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Public asset bytes
+          content:
+            "*/*":
+              schema:
+                type: string
+                format: binary
+        "404":
+          description: Asset not found
+
+  /categories/{id}:
+    patch:
+      operationId: updateCategory
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: number}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/CategoryInput"}
+      responses:
+        "200":
+          description: Updated category
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Category"}
+    delete:
+      operationId: deleteCategory
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: number}}
+      responses:
+        "204": {description: Removed empty category}
+  /media/uploads/{id}:
+    get:
+      operationId: getShopImage
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+        - name: width
+          in: query
+          required: false
+          description: Optional responsive variant width; requesting a width returns WebP.
+          schema: {type: integer, enum: [160, 320, 640, 960, 1280, 1600]}
+        - name: format
+          in: query
+          required: false
+          description: Request a compressed WebP image.
+          schema: {type: string, enum: [webp]}
+      responses:
+        "200":
+          description: Published shop image (unpublished gallery files remain private)
+          content:
+            image/jpeg:
+              schema: {type: string, format: binary}
+            image/webp:
+              schema: {type: string, format: binary}
+        "404": {description: No published image}
+  /banners:
+    get:
+      operationId: listBanners
+      responses:
+        "200":
+          description: Banners
+          content:
+            application/json:
+              schema: {type: array, items: {$ref: "#/components/schemas/Banner"}}
+    post:
+      operationId: createBanner
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/BannerInput"}
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Banner"}
+  /banners/{id}:
+    patch:
+      operationId: updateBanner
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: number}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/BannerInput"}
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Banner"}
+    delete:
+      operationId: deleteBanner
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: number}}
+      responses:
+        "204": {description: Deleted}
+  /settings:
+    get:
+      operationId: getStoreSettings
+      responses:
+        "200":
+          description: Store settings
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/StoreSettings"}
+    put:
+      operationId: updateStoreSettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/StoreSettings"}
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/StoreSettings"}
+  /subscribers:
+    post:
+      operationId: subscribeNewsletter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/NewsletterInput"}
+      responses:
+        "201":
+          description: Subscribed
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ActionResult"}
+    get:
+      operationId: listSubscribers
+      responses:
+        "200":
+          description: Subscribers
+          content:
+            application/json:
+              schema: {type: array, items: {$ref: "#/components/schemas/Subscriber"}}
+  /subscribers/export:
+    get:
+      operationId: exportSubscribers
+      responses:
+        "200":
+          description: Subscriber CSV
+          content:
+            text/csv:
+              schema: {type: string}
+  /abandoned-carts:
+    post:
+      operationId: saveAbandonedCart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/AbandonedCartInput"}
+      responses:
+        "200":
+          description: Saved with consent
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ActionResult"}
+    get:
+      operationId: listAbandonedCarts
+      responses:
+        "200":
+          description: Unrecovered checkout drafts from last 30 days
+          content:
+            application/json:
+              schema: {type: array, items: {$ref: "#/components/schemas/AbandonedCart"}}
+  /abandoned-carts/{id}:
+    delete:
+      operationId: deleteAbandonedCart
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: number}}
+      responses:
+        "204": {description: Deleted}
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+
+    Product:
+      type: object
+      required: [id, name, price, categoryId, brandId, inStock, createdAt, sleeveInches]
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        price:
+          type: number
+        originalPrice:
+          type: ["number", "null"]
+        imageUrl:
+          type: ["string", "null"]
+        categoryId:
+          type: number
+        categoryName:
+          type: ["string", "null"]
+        brandId:
+          type: number
+        brandName:
+          type: ["string", "null"]
+        size:
+          type: ["string", "null"]
+        condition:
+          type: ["string", "null"]
+        inStock:
+          type: boolean
+        createdAt:
+          type: string
+        stockQuantity: {type: number}
+        images: {type: array, items: {type: string}}
+        featured: {type: boolean}
+        chestInches: {type: ["number", "null"]}
+        lengthInches: {type: ["number", "null"]}
+        sleeveInches: {type: ["number", "null"]}
+        waistInches: {type: ["number", "null"], minimum: 1, maximum: 100}
+        flashDropEndsAt: {type: ["string", "null"]}
+
+    AdminProduct:
+      allOf:
+        - $ref: "#/components/schemas/Product"
+        - type: object
+          properties:
+            storageLocationCode:
+              type: ["string", "null"]
+
+    ProductInput:
+      type: object
+      required: [name, price, categoryId, brandId]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        originalPrice:
+          type: ["number", "null"]
+        imageUrl:
+          type: ["string", "null"]
+          maxLength: 7000000
+        categoryId:
+          type: number
+        brandId:
+          type: number
+        size:
+          type: ["string", "null"]
+        condition:
+          type: ["string", "null"]
+        inStock:
+          type: boolean
+        stockQuantity: {type: number, minimum: 0, maximum: 100000}
+        images: {type: array, maxItems: 12, items: {type: string}}
+        featured: {type: boolean}
+        chestInches: {type: ["number", "null"], minimum: 1, maximum: 100}
+        lengthInches: {type: ["number", "null"], minimum: 1, maximum: 100}
+        sleeveInches: {type: ["number", "null"], minimum: 1, maximum: 100}
+        waistInches: {type: ["number", "null"], minimum: 1, maximum: 100}
+        flashDropEndsAt: {type: ["string", "null"]}
+        storageLocationCode: {type: ["string", "null"], maxLength: 80}
+
+    ProductUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        price:
+          type: number
+        originalPrice:
+          type: ["number", "null"]
+        imageUrl:
+          type: ["string", "null"]
+          maxLength: 7000000
+        categoryId:
+          type: number
+        brandId:
+          type: number
+        size:
+          type: ["string", "null"]
+        condition:
+          type: ["string", "null"]
+        inStock:
+          type: boolean
+        stockQuantity: {type: number, minimum: 0, maximum: 100000}
+        images: {type: array, maxItems: 12, items: {type: string}}
+        featured: {type: boolean}
+        chestInches: {type: ["number", "null"], minimum: 1, maximum: 100}
+        lengthInches: {type: ["number", "null"], minimum: 1, maximum: 100}
+        sleeveInches: {type: ["number", "null"], minimum: 1, maximum: 100}
+        waistInches: {type: ["number", "null"], minimum: 1, maximum: 100}
+        flashDropEndsAt: {type: ["string", "null"]}
+        storageLocationCode: {type: ["string", "null"], maxLength: 80}
+
+    Category:
+      type: object
+      required: [id, name, icon]
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        icon:
+          type: string
+        productCount:
+          type: ["number", "null"]
+        imageUrl: {type: ["string", "null"]}
+        collection: {type: string}
+
+    CategoryInput:
+      type: object
+      required: [name, icon]
+      properties:
+        name:
+          type: string
+        icon:
+          type: string
+        imageUrl: {type: ["string", "null"]}
+        collection:
+          type: string
+          enum: [Winter Collection, Summer Collection, Accessories & Streetwear]
+
+    Brand:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        logoUrl:
+          type: ["string", "null"]
+        productCount:
+          type: ["number", "null"]
+
+    BrandInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        logoUrl:
+          type: ["string", "null"]
+
+    OrderItem:
+      type: object
+      required: [productId, productName, quantity, unitPrice]
+      properties:
+        productId:
+          type: number
+        productName:
+          type: string
+        quantity:
+          type: number
+        unitPrice:
+          type: number
+        imageUrl:
+          type: ["string", "null"]
+        storageLocationCode:
+          type: ["string", "null"]
+
+    Order:
+      type: object
+      required: [id, customerName, customerPhone, customerAddress, totalAmount, status, items, createdAt]
+      properties:
+        id:
+          type: number
+        customerName:
+          type: string
+        customerPhone:
+          type: string
+        customerEmail:
+          type: ["string", "null"]
+          pattern: "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"
+        customerAddress:
+          type: string
+        totalAmount:
+          type: number
+        status:
+          type: string
+        notes:
+          type: ["string", "null"]
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        createdAt:
+          type: string
+        city: {type: string}
+        paymentMethod: {type: string}
+        shippingFee: {type: number}
+        subtotal: {type: number}
+
+    CheckoutItem:
+      type: object
+      required: [productId, quantity]
+      properties:
+        productId:
+          type: number
+        quantity:
+          type: number
+
+    OrderInput:
+      type: object
+      required: [customerName, customerPhone, customerAddress, items]
+      properties:
+        customerName:
+          type: string
+        customerPhone:
+          type: string
+        customerEmail:
+          type: string
+          pattern: "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"
+          maxLength: 254
+        customerAddress:
+          type: string
+        city: {type: string, maxLength: 100}
+        paymentMethod: {type: string, enum: [cod, direct_transfer], default: cod}
+        idempotencyKey: {type: string, minLength: 16, maxLength: 100}
+        recoveryToken: {type: string, minLength: 16, maxLength: 100}
+        notes:
+          type: ["string", "null"]
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CheckoutItem"
+
+    OrderStatusUpdate:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [pending, confirmed, shipped, delivered, cancelled]
+
+    StoreStats:
+      type: object
+      required: [totalProducts, totalOrders, pendingOrders, totalRevenue, inStockProducts, totalCategories, totalBrands, totalPageViews, todayPageViews, activeVisitors, dailyPageViews]
+      properties:
+        totalProducts:
+          type: number
+        totalOrders:
+          type: number
+        pendingOrders:
+          type: number
+        totalRevenue:
+          type: number
+        inStockProducts:
+          type: number
+        totalCategories:
+          type: number
+        totalBrands:
+          type: number
+        totalPageViews:
+          type: number
+        todayPageViews:
+          type: number
+        activeVisitors:
+          type: number
+        dailyPageViews:
+          type: array
+          items:
+            $ref: "#/components/schemas/DailyPageViews"
+    DailyPageViews:
+      type: object
+      required: [date, pageViews]
+      properties:
+        date:
+          type: string
+          format: date
+        pageViews:
+          type: number
+    VisitorActivityInput:
+      type: object
+      required: [visitorId, path, recordPageView]
+      properties:
+        visitorId:
+          type: string
+          pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'
+        path:
+          type: string
+          minLength: 1
+          maxLength: 200
+        recordPageView:
+          type: boolean
+
+    AdminAccess:
+      type: object
+      required: [isOwner]
+      properties:
+        isOwner:
+          type: boolean
+
+    GalleryImage:
+      type: object
+      required: [id, objectPath, name, contentType, size, createdAt]
+      properties:
+        id:
+          type: number
+        objectPath:
+          type: string
+        name:
+          type: string
+        contentType:
+          type: string
+        size:
+          type: number
+        createdAt:
+          type: string
+
+    GalleryImageInput:
+      type: object
+      required: [objectPath, name, contentType, size]
+      properties:
+        objectPath:
+          type: string
+          minLength: 1
+        name:
+          type: string
+          minLength: 1
+        contentType:
+          type: string
+          minLength: 1
+        size:
+          type: number
+          minimum: 1
+
+    UploadUrlRequest:
+      type: object
+      required: [name, size, contentType]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        size:
+          type: number
+          minimum: 1
+        contentType:
+          type: string
+          minLength: 1
+
+    UploadUrlResponse:
+      type: object
+      required: [uploadURL, objectPath]
+      properties:
+        uploadURL:
+          type: string
+        objectPath:
+          type: string
+        metadata:
+          $ref: "#/components/schemas/UploadUrlRequest"
+
+    Banner:
+      allOf:
+        - {$ref: "#/components/schemas/BannerInput"}
+        - {type: object, required: [id], properties: {id: {type: number}}}
+    BannerInput:
+      type: object
+      required: [title, subtitle, imageUrl, linkUrl, active, position]
+      properties:
+        title: {type: string, minLength: 1, maxLength: 150}
+        subtitle: {type: string, maxLength: 500}
+        imageUrl: {type: string, minLength: 1}
+        linkUrl: {type: string, minLength: 1}
+        active: {type: boolean}
+        position: {type: number, minimum: 0, maximum: 1000}
+    StoreSettings:
+      type: object
+      required: [whatsappNumber, instagramUrl, tiktokUrl, bankInstructions, shippingFee, googleAnalyticsMeasurementId]
+      properties:
+        whatsappNumber: {type: string, maxLength: 20}
+        instagramUrl: {type: string, maxLength: 300}
+        tiktokUrl: {type: string, maxLength: 300}
+        bankInstructions: {type: string, maxLength: 1000}
+        shippingFee: {type: number, minimum: 0, maximum: 5000}
+        googleAnalyticsMeasurementId: {type: string, maxLength: 24, pattern: '^(?:|G-[A-Z0-9]{4,20})$'}
+    NewsletterInput:
+      type: object
+      required: [email]
+      properties:
+        email: {type: string, maxLength: 254}
+    Subscriber:
+      type: object
+      required: [id, email, createdAt]
+      properties:
+        id: {type: number}
+        email: {type: string}
+        createdAt: {type: string}
+    ActionResult:
+      type: object
+      required: [success]
+      properties:
+        success: {type: boolean}
+    AbandonedCartInput:
+      type: object
+      required: [token, customerPhone, items, consent]
+      properties:
+        token: {type: string, minLength: 16, maxLength: 100}
+        customerName: {type: string, maxLength: 150}
+        customerPhone: {type: string, minLength: 10, maxLength: 30}
+        customerAddress: {type: string, maxLength: 500}
+        city: {type: string, maxLength: 100}
+        consent: {type: boolean}
+        items: {type: array, maxItems: 50, items: {$ref: "#/components/schemas/CheckoutItem"}}
+    AbandonedCart:
+      type: object
+      required: [id, customerName, customerPhone, city, customerAddress, items, updatedAt]
+      properties:
+        id: {type: number}
+        customerName: {type: string}
+        customerPhone: {type: string}
+        city: {type: string}
+        customerAddress: {type: string}
+        items: {type: array, items: {$ref: "#/components/schemas/OrderItem"}}
+        updatedAt: {type: string}
