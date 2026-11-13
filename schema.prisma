@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+model Category {
+  id Int @id @default(autoincrement())
+  name String
+  icon String @default("package")
+  imageUrl String? @map("image_url")
+  collection String @default("Summer Collection")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  products Product[]
+  @@map("categories")
+}
+model Brand {
+  id Int @id @default(autoincrement())
+  name String
+  logoUrl String? @map("logo_url")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  products Product[]
+  @@map("brands")
+}
+model Product {
+  id Int @id @default(autoincrement())
+  name String
+  description String?
+  price Decimal @db.Decimal(10,2)
+  originalPrice Decimal? @map("original_price") @db.Decimal(10,2)
+  imageUrl String? @map("image_url")
+  categoryId Int @map("category_id")
+  brandId Int @map("brand_id")
+  category Category @relation(fields: [categoryId], references: [id])
+  brand Brand @relation(fields: [brandId], references: [id])
+  size String?
+  condition String @default("good")
+  inStock Boolean @default(true) @map("in_stock")
+  stockQuantity Int @default(1) @map("stock_quantity")
+  images String[] @default([])
+  storageLocationCode String? @map("storage_location_code")
+  featured Boolean @default(false)
+  chestInches Decimal? @map("chest_inches") @db.Decimal(6,2)
+  lengthInches Decimal? @map("length_inches") @db.Decimal(6,2)
+  sleeveInches Decimal? @map("sleeve_inches") @db.Decimal(6,2)
+  waistInches Decimal? @map("waist_inches") @db.Decimal(6,2)
+  flashDropEndsAt DateTime? @map("flash_drop_ends_at") @db.Timestamp(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamp(6)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  @@map("products")
+}
+model Order {
+  id Int @id @default(autoincrement())
+  customerName String @map("customer_name")
+  customerPhone String @map("customer_phone")
+  customerEmail String? @map("customer_email")
+  customerAddress String @map("customer_address")
+  city String @default("")
+  paymentMethod String @default("cod") @map("payment_method")
+  subtotal Decimal @default(0) @db.Decimal(10,2)
+  shippingFee Decimal @default(0) @map("shipping_fee") @db.Decimal(10,2)
+  idempotencyKey String? @unique @map("idempotency_key")
+  stockReserved Boolean @default(false) @map("stock_reserved")
+  totalAmount Decimal @map("total_amount") @db.Decimal(10,2)
+  status String @default("pending")
+  notes String?
+  items Json @default("[]")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  @@map("orders")
+}
+model Banner {
+  id Int @id @default(autoincrement())
+  title String
+  subtitle String @default("")
+  imageUrl String @map("image_url")
+  linkUrl String @default("/collection") @map("link_url")
+  active Boolean @default(true)
+  position Int @default(0)
+  @@map("banners")
+}
+model StoreSettings {
+  id Int @id
+  whatsappNumber String @default("") @map("whatsapp_number")
+  instagramUrl String @default("") @map("instagram_url")
+  tiktokUrl String @default("") @map("tiktok_url")
+  bankInstructions String @default("") @map("bank_instructions")
+  shippingFee Int @default(250) @map("shipping_fee")
+  googleAnalyticsMeasurementId String @default("") @map("google_analytics_measurement_id")
+  @@map("store_settings")
+}
+model Subscriber {
+  id Int @id @default(autoincrement())
+  email String @unique
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  @@map("subscribers")
+}
+model AbandonedCart {
+  id Int @id @default(autoincrement())
+  token String @unique
+  customerName String @default("") @map("customer_name")
+  customerPhone String @map("customer_phone")
+  city String @default("")
+  customerAddress String @default("") @map("customer_address")
+  items Json @default("[]")
+  recovered Boolean @default(false)
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamp(6)
+  @@map("abandoned_carts")
+}
+model AdminPushSubscription {
+  id Int @id @default(autoincrement())
+  endpoint String @unique @db.Text
+  p256dh String @db.Text
+  auth String @db.Text
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  @@map("admin_push_subscriptions")
+}
